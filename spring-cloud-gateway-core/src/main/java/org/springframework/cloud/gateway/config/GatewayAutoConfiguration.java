@@ -21,9 +21,13 @@ import java.security.cert.X509Certificate;
 import java.util.List;
 import java.util.function.Consumer;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.netflix.hystrix.HystrixObservableCommand;
 import io.netty.channel.ChannelOption;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.ipc.netty.http.client.HttpClient;
@@ -149,6 +153,9 @@ import static org.springframework.cloud.gateway.config.HttpClientProperties.Pool
 @ConditionalOnClass(DispatcherHandler.class)
 public class GatewayAutoConfiguration {
 
+
+	private static final Log log = LogFactory.getLog(GatewayAutoConfiguration.class);
+
 	@Configuration
 	@ConditionalOnClass(HttpClient.class)
 	protected static class NettyConfiguration {
@@ -270,24 +277,36 @@ public class GatewayAutoConfiguration {
 		return new RouteLocatorBuilder(context);
 	}
 
+
+//	RouteDefinitionLocator
 	@Bean
 	@ConditionalOnMissingBean
 	public PropertiesRouteDefinitionLocator propertiesRouteDefinitionLocator(GatewayProperties properties) {
 		return new PropertiesRouteDefinitionLocator(properties);
 	}
-
+//	RouteDefinitionLocator
 	@Bean
 	@ConditionalOnMissingBean(RouteDefinitionRepository.class)
 	public InMemoryRouteDefinitionRepository inMemoryRouteDefinitionRepository() {
 		return new InMemoryRouteDefinitionRepository();
 	}
-
+//	RouteDefinitionLocator
 	@Bean
 	@Primary
 	public RouteDefinitionLocator routeDefinitionLocator(List<RouteDefinitionLocator> routeDefinitionLocators) {
 		return new CompositeRouteDefinitionLocator(Flux.fromIterable(routeDefinitionLocators));
 	}
 
+
+	/**
+	 * 路由定位器
+	 * @param properties 属性配置信息
+	 * @param GatewayFilters 网关过滤器工厂
+	 * @param predicates 路由断言工厂
+	 * @param routeDefinitionLocator 路由定义定位器
+	 * 路由定义定位器 ：CompositeRouteDefinitionLocator InMemoryRouteDefinitionRepository PropertiesRouteDefinitionLocator
+	 * @return
+	 */
 	@Bean
 	public RouteLocator routeDefinitionRouteLocator(GatewayProperties properties,
 												   List<GatewayFilterFactory> GatewayFilters,
@@ -310,6 +329,11 @@ public class GatewayAutoConfiguration {
 
 	@Bean
 	public FilteringWebHandler filteringWebHandler(List<GlobalFilter> globalFilters) {
+		try {
+			log.info(Jackson2ObjectMapperBuilder.json().build().writeValueAsString(globalFilters));
+		} catch (JsonProcessingException e) {
+			e.printStackTrace();
+		}
 		return new FilteringWebHandler(globalFilters);
 	}
 
@@ -410,6 +434,7 @@ public class GatewayAutoConfiguration {
 	}*/
 
 	// Predicate Factory beans
+//	实例化各种RoutePredicateFactory start
 
 	@Bean
 	public AfterRoutePredicateFactory afterRoutePredicateFactory() {
@@ -476,6 +501,8 @@ public class GatewayAutoConfiguration {
 	public CloudFoundryRouteServiceRoutePredicateFactory cloudFoundryRouteServiceRoutePredicateFactory() {
 		return new CloudFoundryRouteServiceRoutePredicateFactory();
 	}
+
+	//	实例化各种RoutePredicateFactory end
 
 	// GatewayFilter Factory beans
 

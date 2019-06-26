@@ -37,6 +37,10 @@ import org.springframework.web.util.UriComponentsBuilder;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.toAsyncPredicate;
 
 /**
+ * 路由信息
+ */
+
+/**
  * @author Spencer Gibb
  */
 public class Route implements Ordered {

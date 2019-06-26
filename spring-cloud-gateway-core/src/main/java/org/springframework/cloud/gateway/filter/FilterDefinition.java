@@ -30,6 +30,16 @@ import static org.springframework.util.StringUtils.tokenizeToStringArray;
 
 /**
  * @author Spencer Gibb
+ * spring:
+ *   cloud:
+ *     gateway:
+ *       routes:
+ *       - id: add_request_header_route
+ *         uri: http://example.org
+ *         filters:
+ *         - AddRequestHeader=X-Request-Foo, Bar
+ *
+ * 对应AddRequestHeader=X-Request-Foo, Bar
  */
 @Validated
 public class FilterDefinition {

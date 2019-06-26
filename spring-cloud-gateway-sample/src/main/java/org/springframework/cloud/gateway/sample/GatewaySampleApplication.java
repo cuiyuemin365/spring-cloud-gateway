@@ -49,6 +49,11 @@ public class GatewaySampleApplication {
 	@Value("${test.uri:http://httpbin.org:80}")
 	String uri;
 
+	/**
+	 * 编程方式定义路由信息
+	 * @param builder
+	 * @return
+	 */
 	@Bean
 	public RouteLocator customRouteLocator(RouteLocatorBuilder builder) {
 		//@formatter:off

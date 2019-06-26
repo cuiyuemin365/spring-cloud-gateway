@@ -123,8 +123,15 @@ public class RouteDefinitionRouteLocator implements RouteLocator, BeanFactoryAwa
 			}*/
 	}
 
+	/**
+	 * 将路由定义信息转换成路由信息
+	 * @param routeDefinition
+	 * @return
+	 */
 	private Route convertToRoute(RouteDefinition routeDefinition) {
+//		转换Predicate
 		AsyncPredicate<ServerWebExchange> predicate = combinePredicates(routeDefinition);
+//		转换GatewayFilter
 		List<GatewayFilter> gatewayFilters = getFilters(routeDefinition);
 
 		return Route.async(routeDefinition)
@@ -133,11 +140,18 @@ public class RouteDefinitionRouteLocator implements RouteLocator, BeanFactoryAwa
 				.build();
 	}
 
+	/**
+	 * 将FilterDefinition转成GatewayFilter
+	 * @param id
+	 * @param filterDefinitions
+	 * @return
+	 */
 	@SuppressWarnings("unchecked")
 	List<GatewayFilter> loadGatewayFilters(String id, List<FilterDefinition> filterDefinitions) {
 		ArrayList<GatewayFilter> ordered = new ArrayList<>(filterDefinitions.size());
 		for (int i = 0; i < filterDefinitions.size(); i++) {
 			FilterDefinition definition = filterDefinitions.get(i);
+//			获取工厂
 			GatewayFilterFactory factory = this.gatewayFilterFactories.get(definition.getName());
 			if (factory == null) {
 				throw new IllegalArgumentException("Unable to find GatewayFilterFactory with name " + definition.getName());
@@ -186,6 +200,11 @@ public class RouteDefinitionRouteLocator implements RouteLocator, BeanFactoryAwa
 		return filters;
 	}
 
+	/**
+	 * 将多个PredicateDefinition转换成一个AsyncPredicate
+	 * @param routeDefinition
+	 * @return
+	 */
 	private AsyncPredicate<ServerWebExchange> combinePredicates(RouteDefinition routeDefinition) {
 		List<PredicateDefinition> predicates = routeDefinition.getPredicates();
 		AsyncPredicate<ServerWebExchange> predicate = lookup(routeDefinition, predicates.get(0));
