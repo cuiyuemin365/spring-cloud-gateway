@@ -36,6 +36,8 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.G
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR;
 
 /**
+ * 核心属性是FilteringWebHandler和RouteLocator 使用RouteLocator获得路由信息 使用FilteringWebHandler处理请求
+ *
  * @author Spencer Gibb
  */
 public class RoutePredicateHandlerMapping extends AbstractHandlerMapping {
@@ -84,6 +86,7 @@ public class RoutePredicateHandlerMapping extends AbstractHandlerMapping {
 		}
 		exchange.getAttributes().put(GATEWAY_HANDLER_MAPPER_ATTR, getSimpleName());
 
+		// 如果能找到路由，返回webHandler，不然返回空。
 		return lookupRoute(exchange)
 				// .log("route-predicate-handler-mapping", Level.FINER) //name this
 				.flatMap((Function<Route, Mono<?>>) r -> {
@@ -92,7 +95,7 @@ public class RoutePredicateHandlerMapping extends AbstractHandlerMapping {
 						logger.debug(
 								"Mapping [" + getExchangeDesc(exchange) + "] to " + r);
 					}
-
+					// 将route对象放到上下文中
 					exchange.getAttributes().put(GATEWAY_ROUTE_ATTR, r);
 					return Mono.just(webHandler);
 				}).switchIfEmpty(Mono.empty().then(Mono.fromRunnable(() -> {
@@ -124,6 +127,11 @@ public class RoutePredicateHandlerMapping extends AbstractHandlerMapping {
 		return out.toString();
 	}
 
+	/**
+	 * 查询路由信息 使用routeLocator查询路由信息，通过Predicate测试
+	 * @param exchange
+	 * @return
+	 */
 	protected Mono<Route> lookupRoute(ServerWebExchange exchange) {
 		return this.routeLocator.getRoutes()
 				// individually filter routes so that filterWhen error delaying is not a

@@ -22,6 +22,8 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.gateway.filter.GatewayFilter;
@@ -40,6 +42,8 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.G
 /**
  * WebHandler that delegates to a chain of {@link GlobalFilter} instances and
  * {@link GatewayFilterFactory} instances then to the target {@link WebHandler}.
+ * WebHandler委托一系列{@link GlobalFilter}实例和*
+ * {@link GatewayFilterFactory}实例然后委托给目标{@link WebHandler}。
  *
  * @author Rossen Stoyanchev
  * @author Spencer Gibb
@@ -55,6 +59,11 @@ public class FilteringWebHandler implements WebHandler {
 		this.globalFilters = loadFilters(globalFilters);
 	}
 
+	/**
+	 * GlobalFilter适配GatewayFilter
+	 * @param filters
+	 * @return
+	 */
 	private static List<GatewayFilter> loadFilters(List<GlobalFilter> filters) {
 		return filters.stream().map(filter -> {
 			GatewayFilterAdapter gatewayFilter = new GatewayFilterAdapter(filter);
@@ -73,18 +82,20 @@ public class FilteringWebHandler implements WebHandler {
 
 	@Override
 	public Mono<Void> handle(ServerWebExchange exchange) {
+		// 获取路由中的过滤器
 		Route route = exchange.getRequiredAttribute(GATEWAY_ROUTE_ATTR);
 		List<GatewayFilter> gatewayFilters = route.getFilters();
-
+		gatewayFilters.stream().map(Object::getClass).map(Class::getSimpleName)
+				.forEach((item) -> logger.info("gatewayFilters:" + item));
 		List<GatewayFilter> combined = new ArrayList<>(this.globalFilters);
 		combined.addAll(gatewayFilters);
 		// TODO: needed or cached?
+		// 排序
 		AnnotationAwareOrderComparator.sort(combined);
 
 		if (logger.isDebugEnabled()) {
 			logger.debug("Sorted gatewayFilterFactories: " + combined);
 		}
-
 		return new DefaultGatewayFilterChain(combined).filter(exchange);
 	}
 
@@ -113,6 +124,7 @@ public class FilteringWebHandler implements WebHandler {
 			return Mono.defer(() -> {
 				if (this.index < filters.size()) {
 					GatewayFilter filter = filters.get(this.index);
+					logger.info("开始执行：" + filter.getClass().getSimpleName());
 					DefaultGatewayFilterChain chain = new DefaultGatewayFilterChain(this,
 							this.index + 1);
 					return filter.filter(exchange, chain);
@@ -127,6 +139,8 @@ public class FilteringWebHandler implements WebHandler {
 
 	private static class GatewayFilterAdapter implements GatewayFilter {
 
+		private final Logger logger = LoggerFactory.getLogger(getClass());
+
 		private final GlobalFilter delegate;
 
 		GatewayFilterAdapter(GlobalFilter delegate) {
@@ -135,6 +149,7 @@ public class FilteringWebHandler implements WebHandler {
 
 		@Override
 		public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+			logger.info("执行filter：{}", this.delegate.getClass().getSimpleName());
 			return this.delegate.filter(exchange, chain);
 		}
 

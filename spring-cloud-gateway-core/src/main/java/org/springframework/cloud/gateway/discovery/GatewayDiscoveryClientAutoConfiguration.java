@@ -65,6 +65,10 @@ public class GatewayDiscoveryClientAutoConfiguration {
 		return definitions;
 	}
 
+	/**
+	 * 添加过滤器
+	 * @return
+	 */
 	public static List<FilterDefinition> initFilters() {
 		ArrayList<FilterDefinition> definitions = new ArrayList<>();
 

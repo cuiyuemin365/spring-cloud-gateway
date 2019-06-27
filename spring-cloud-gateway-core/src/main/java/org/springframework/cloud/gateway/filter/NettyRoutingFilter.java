@@ -56,6 +56,8 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.i
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.setAlreadyRouted;
 
 /**
+ * 发送http请求
+ *
  * @author Spencer Gibb
  * @author Biju Kunjummen
  */

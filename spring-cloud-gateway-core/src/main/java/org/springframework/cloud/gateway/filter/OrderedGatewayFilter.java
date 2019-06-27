@@ -16,6 +16,8 @@
 
 package org.springframework.cloud.gateway.filter;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import reactor.core.publisher.Mono;
 
 import org.springframework.core.Ordered;
@@ -30,6 +32,8 @@ public class OrderedGatewayFilter implements GatewayFilter, Ordered {
 
 	private final int order;
 
+	private final Logger logger = LoggerFactory.getLogger(getClass());
+
 	public OrderedGatewayFilter(GatewayFilter delegate, int order) {
 		this.delegate = delegate;
 		this.order = order;
@@ -41,6 +45,7 @@ public class OrderedGatewayFilter implements GatewayFilter, Ordered {
 
 	@Override
 	public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+		logger.info("执行filter：{}", this.delegate.getClass().getSimpleName());
 		return this.delegate.filter(exchange, chain);
 	}
 

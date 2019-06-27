@@ -23,6 +23,9 @@ import com.netflix.hystrix.HystrixObservableCommand;
 import io.netty.channel.ChannelOption;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import reactor.core.publisher.Flux;
 import reactor.netty.http.client.HttpClient;
 import reactor.netty.resources.ConnectionProvider;
@@ -149,6 +152,9 @@ import static org.springframework.cloud.gateway.config.HttpClientProperties.Pool
 @ConditionalOnClass(DispatcherHandler.class)
 public class GatewayAutoConfiguration {
 
+	private static final Logger logger = LoggerFactory
+			.getLogger(GatewayAutoConfiguration.class);
+
 	@Bean
 	public StringToZonedDateTimeConverter stringToZonedDateTimeConverter() {
 		return new StringToZonedDateTimeConverter();
@@ -207,6 +213,8 @@ public class GatewayAutoConfiguration {
 
 	@Bean
 	public FilteringWebHandler filteringWebHandler(List<GlobalFilter> globalFilters) {
+		globalFilters.stream().map(Object::getClass).map(Class::getSimpleName)
+				.forEach((item) -> logger.info("globalFilters：{}", item));
 		return new FilteringWebHandler(globalFilters);
 	}
 

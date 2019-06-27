@@ -35,6 +35,8 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.c
 
 /**
  * @author Spencer Gibb
+ *
+ * http://127.0.0.1:8080/user/123 lb://USER-SERVICE lb://USER-SERVICE/user/123
  */
 public class RouteToRequestUrlFilter implements GlobalFilter, Ordered {
 
@@ -61,15 +63,18 @@ public class RouteToRequestUrlFilter implements GlobalFilter, Ordered {
 
 	@Override
 	public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+		log.info("开始执行 RouteToRequestUrlFilter");
+		// 获取路由 CompositeDiscoveryClient_USER-SERVICE
 		Route route = exchange.getAttribute(GATEWAY_ROUTE_ATTR);
 		if (route == null) {
 			return chain.filter(exchange);
 		}
 		log.trace("RouteToRequestUrlFilter start");
 		URI uri = exchange.getRequest().getURI();
+		// uri http://127.0.0.1:8080/user/123
 		boolean encoded = containsEncodedParts(uri);
 		URI routeUri = route.getUri();
-
+		// routeUri lb://USER-SERVICE
 		if (hasAnotherScheme(routeUri)) {
 			// this is a special url, save scheme to special attribute
 			// replace routeUri with schemeSpecificPart
@@ -90,6 +95,7 @@ public class RouteToRequestUrlFilter implements GlobalFilter, Ordered {
 				// .uri(routeUri)
 				.scheme(routeUri.getScheme()).host(routeUri.getHost())
 				.port(routeUri.getPort()).build(encoded).toUri();
+		// GATEWAY_REQUEST_URL_ATTR mergedUrl lb://USER-SERVICE/user/123
 		exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, mergedUrl);
 		return chain.filter(exchange);
 	}

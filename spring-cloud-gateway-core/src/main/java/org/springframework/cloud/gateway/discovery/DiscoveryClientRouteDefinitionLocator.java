@@ -56,10 +56,15 @@ public class DiscoveryClientRouteDefinitionLocator implements RouteDefinitionLoc
 
 	private final SimpleEvaluationContext evalCtxt;
 
+	/**
+	 * @param discoveryClient 服务发现客户端
+	 * @param properties 配置信息
+	 */
 	public DiscoveryClientRouteDefinitionLocator(DiscoveryClient discoveryClient,
 			DiscoveryLocatorProperties properties) {
 		this.discoveryClient = discoveryClient;
 		this.properties = properties;
+		// 定义路由id前缀
 		if (StringUtils.hasText(properties.getRouteIdPrefix())) {
 			this.routeIdPrefix = properties.getRouteIdPrefix();
 		}
@@ -70,6 +75,10 @@ public class DiscoveryClientRouteDefinitionLocator implements RouteDefinitionLoc
 				.build();
 	}
 
+	/**
+	 * 根据服务发现信息，获取路由定义信息
+	 * @return
+	 */
 	@Override
 	public Flux<RouteDefinition> getRouteDefinitions() {
 
